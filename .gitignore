@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+*.ipynb
+.ipynb_checkpoints/
+input*
+output*
+archives*
+notebooks*
+res*
+*.png
+*.jpg
+*.pdf
+*.batch
+*.sh
