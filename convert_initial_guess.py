@@ -13,12 +13,12 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.debug(f'Started conversion')
 
-dir_2d = '/home/x-jqfang/scratch/newnew_2607/fdynmid_3.00e-01'
+dir_2d = '/home/x-jqfang/scratch/model_2610/fdynmid_3.00e-01'
 meshfile_2d = f'{dir_2d}/data/mesh_0.h5'
 vfile_2d = f'{dir_2d}/data/velocity_l19.h5'
 pfile_2d = f'{dir_2d}/data/pressure_l19.h5'
 
-dir_3d = '/home/x-jqfang/scratch/newnew_2607/3d_basic'
+dir_3d = '/home/x-jqfang/scratch/model_2610/3d_basic'
 meshfile_3d = f'{dir_3d}/data/mesh_0.h5'
 
 output_dir_3d = dir_2d

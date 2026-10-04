@@ -31,7 +31,7 @@ param_name = param_list[param_idx]
 param_s = f'{param_name}_{param_value:.2e}'
 param_Y = float(sys.argv[-1])
 
-output_dir_parent = '/home1/08524/jqfang/scratch/newnew_2607'
+output_dir_parent = '/home/x-jqfang/scratch/model_2610'
 
 log_dir = f'{output_dir_parent}/L_{param_Y:.2e}/{param_s}/'
 Path(log_dir).mkdir(exist_ok=True, parents=True)

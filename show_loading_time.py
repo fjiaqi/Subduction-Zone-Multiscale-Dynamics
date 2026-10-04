@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-base_dir = Path("/home1/08524/jqfang/scratch/newnew_2607")
+base_dir = Path("/home/x-jqfang/scratch/model_2610")
 
 param_list = [
     "fdynmid", "fdynup", "fst", "etamax", "ymax",

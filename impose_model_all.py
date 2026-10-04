@@ -37,7 +37,7 @@ param_gfactor = 1.0
 param_Y = 1e10
 param_Z = 60e3
 
-output_dir_parent = '/home/x-jqfang/scratch/newnew_2607'
+output_dir_parent = '/home/x-jqfang/scratch/model_2610'
 save_basics = False
 
 ##################################################################################################################################################

@@ -46,7 +46,7 @@ param_list = ['fdynmid', 'fdynup', 'fst', 'etamax', 'ymax',
 param_name = param_list[param_idx]
 locals()[f'param_{param_name}'] = param_value
 
-output_dir_parent = '/home1/08524/jqfang/scratch/newnew_2607'
+output_dir_parent = '/home/x-jqfang/scratch/model_2610'
 
 ##################################################################################################################################################
 

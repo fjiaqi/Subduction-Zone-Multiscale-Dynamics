@@ -25,7 +25,6 @@ params = {
     'svg.fonttype': 'none'
 }
 mpl.rcParams.update(params)
-%matplotlib inline
 
 # %%
 reference_length = 1.0e6
@@ -227,7 +226,7 @@ def extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins, plim=5):
     return np.linalg.norm(sz_dv, axis=-1)
 
 # %%
-output_dir = '/home1/08524/jqfang/scratch/newnew_2607/fdynmid_3.00e-01/data/'
+output_dir = '/home/x-jqfang/scratch/model_2610/fdynmid_3.00e-01/data/'
 yres = 0
 mesh_loc, arg_mesh = load_tmesh(output_dir, yres)
 
@@ -293,8 +292,8 @@ plt.tight_layout()
 plt.savefig('fig_friction.pdf', transparent=True)
 
 # %%
-output_dir = '/home1/08524/jqfang/scratch/newnew_2607/fdynmid_3.00e-01/data/'
-output_dir_c = '/home1/08524/jqfang/scratch/newnew_2607/fdynmid_3.00e-01/restart/data/'
+output_dir = '/home/x-jqfang/scratch/model_2610/fdynmid_3.00e-01/data/'
+output_dir_c = '/home/x-jqfang/scratch/model_2610/fdynmid_3.00e-01/restart/data/'
 yres = 0
 
 mesh_loc, arg_mesh = load_tmesh(output_dir, yres)
@@ -373,8 +372,8 @@ fig.tight_layout()
 plt.savefig('fig_surf_fault_vel.pdf', transparent=True)
 
 # %%
-output_dir = '/home1/08524/jqfang/scratch/newnew_2607/L_8.19e+07/fdynmid_3.00e-01/data/'
-output_dir_c = '/home1/08524/jqfang/scratch/newnew_2607/L_5.12e+06/fdynmid_3.00e-01/restart/data/'
+output_dir = '/home/x-jqfang/scratch/model_2610/L_8.19e+07/fdynmid_3.00e-01/data/'
+output_dir_c = '/home/x-jqfang/scratch/model_2610/L_5.12e+06/fdynmid_3.00e-01/restart/data/'
 yres = 2
 
 mesh_loc, arg_mesh = load_tmesh(output_dir, yres)
@@ -491,7 +490,7 @@ res_dv = np.zeros((len(Z_list), len(Y_list), sz_dv.shape[0]))
 res_W = np.zeros((len(Z_list), len(Y_list)))
 res_M = np.zeros((len(Z_list), len(Y_list)))
 
-output_dir = '/home1/08524/jqfang/scratch/newnew_2607/fdynmid_3.00e-01/restart/data/'
+output_dir = '/home/x-jqfang/scratch/model_2610/fdynmid_3.00e-01/restart/data/'
 sz_dv_inf = np.zeros((len(sz_zbins)-1, 2))
 sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c')
 sz_dv_inf = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
@@ -553,13 +552,13 @@ vlim = 20
 
 fig, axes = plt.subplots(3, 2, figsize=(12, 4.5), sharex=True, sharey=True)
 
-with h5py.File(f'/home1/08524/jqfang/scratch/newnew_2607/L_{Y_list[0]}/Z_6.00e+04/data/tracer_swarm_0.h5', 'r') as f:
+with h5py.File(f'/home/x-jqfang/scratch/model_2610/L_{Y_list[0]}/Z_6.00e+04/data/tracer_swarm_0.h5', 'r') as f:
     mesh_3d = f['data'][...]
     
 for i in range(6):
     ax = axes.flatten()[i]
     ax.set_aspect('equal')
-    with h5py.File(f'/home1/08524/jqfang/scratch/newnew_2607/L_{Y_list[i]}/Z_6.00e+04/restart/data/tracer_velocity_c0.h5', 'r') as f:
+    with h5py.File(f'/home/x-jqfang/scratch/model_2610/L_{Y_list[i]}/Z_6.00e+04/restart/data/tracer_velocity_c0.h5', 'r') as f:
         vel_3d = f['data'][...]
         
     core_buffer = 5
@@ -682,11 +681,11 @@ label_list = (r'$\omega_{disl}$', r'$\tau_{y,b}$', r'$G_b$', r'$G_{sz}$', r'$\mu
 
 yres = 0
 dir_names = sorted(
-    d for d in glob('/home1/08524/jqfang/scratch/newnew_2607/*/data/')
+    d for d in glob('/home/x-jqfang/scratch/model_2610/*/data/')
     if Path(d).parents[0].name.startswith(prefixes)
 )
 dir_c_names = sorted(
-    d for d in glob('/home1/08524/jqfang/scratch/newnew_2607/*/restart/data/')
+    d for d in glob('/home/x-jqfang/scratch/model_2610/*/restart/data/')
     if Path(d).parents[1].name.startswith(prefixes)
 )
 mesh_loc, arg_mesh = load_tmesh(dir_names[0], yres)
@@ -913,11 +912,11 @@ label_list = (r'$\omega_{disl}$', r'$\tau_{y,b}$', r'$G_b$', r'$G_{sz}$', r'$\mu
 
 yres = 2
 dir_names = sorted(
-    d for d in glob('/home1/08524/jqfang/scratch/newnew_2607/L_8.19e+07/*/data/')
+    d for d in glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/*/data/')
     if Path(d).parents[0].name.startswith(prefixes)
 )
 dir_c_names = sorted(
-    d for d in glob('/home1/08524/jqfang/scratch/newnew_2607/L_5.12e+06/*/restart/data/')
+    d for d in glob('/home/x-jqfang/scratch/model_2610/L_5.12e+06/*/restart/data/')
     if Path(d).parents[1].name.startswith(prefixes)
 )
 mesh_loc, arg_mesh = load_tmesh(dir_names[0], yres)
@@ -1376,7 +1375,7 @@ np.rad2deg(np.arctan2(zz[arg_1]-zz[arg_2], xx[arg_2]-xx[arg_1]))
 # %%
 yres = 0
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/gfactor_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/gfactor_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 mesh_loc, arg_mesh = load_tmesh(dir_all[0], yres)
@@ -1387,14 +1386,14 @@ fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
 ax = axes[1]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/gfactor_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/gfactor_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/gfactor_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/gfactor_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1428,14 +1427,14 @@ axt.tick_params(axis='y', colors='r')
 
 ax = axes[0]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/wpa_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/wpa_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/wpa_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/wpa_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1477,14 +1476,14 @@ fig, axes = plt.subplots(2, 2, figsize=(14, 12))
 
 ax = axes[0, 1]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/gfactor_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/gfactor_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/gfactor_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/gfactor_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1518,14 +1517,14 @@ axt.tick_params(axis='y', colors='r')
 
 ax = axes[0, 0]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/wpa_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/wpa_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/wpa_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/wpa_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1561,14 +1560,14 @@ axt.tick_params(axis='y', colors='r')
 
 ax = axes[1, 1]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/gfactor_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/gfactor_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/gfactor_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/gfactor_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1602,14 +1601,14 @@ axt.tick_params(axis='y', colors='r')
 
 ax = axes[1, 0]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/wpa_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/wpa_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/wpa_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/wpa_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1649,7 +1648,7 @@ plt.savefig('fig_theta_Ai_Tr.pdf', transparent=True)
 # %%
 yres = 2
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_8.19e+07/gfactor_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/gfactor_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 mesh_loc, arg_mesh = load_tmesh(dir_all[0], yres)
@@ -1660,14 +1659,14 @@ fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
 ax = axes[1]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_8.19e+07/gfactor_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/gfactor_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_5.12e+06/gfactor_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_5.12e+06/gfactor_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1701,14 +1700,14 @@ axt.tick_params(axis='y', colors='r')
 
 ax = axes[0]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_8.19e+07/wpa_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/wpa_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_5.12e+06/wpa_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_5.12e+06/wpa_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1750,14 +1749,14 @@ fig, axes = plt.subplots(2, 2, figsize=(14, 12))
 
 ax = axes[0, 1]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_8.19e+07/gfactor_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/gfactor_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_5.12e+06/gfactor_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_5.12e+06/gfactor_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1791,14 +1790,14 @@ axt.tick_params(axis='y', colors='r')
 
 ax = axes[0, 0]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_8.19e+07/wpa_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/wpa_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_5.12e+06/wpa_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_5.12e+06/wpa_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1835,14 +1834,14 @@ axt.tick_params(axis='y', colors='r')
 
 ax = axes[1, 1]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_8.19e+07/gfactor_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/gfactor_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_5.12e+06/gfactor_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_5.12e+06/gfactor_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -1876,14 +1875,14 @@ axt.tick_params(axis='y', colors='r')
 
 ax = axes[1, 0]
 dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_8.19e+07/wpa_*/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/wpa_*/data/'),
               key=lambda d: float(Path(d).parents[0].name.split('_')[1])
           )
 dir_values = np.zeros(len(dir_all))
 surf_vx_l_all = np.zeros(len(dir_all))
 sz_dv_c_all = np.zeros(len(dir_all))
 dir_c_all = sorted(
-              glob('/home1/08524/jqfang/scratch/newnew_2607/L_5.12e+06/wpa_*/restart/data/'),
+              glob('/home/x-jqfang/scratch/model_2610/L_5.12e+06/wpa_*/restart/data/'),
               key=lambda d: float(Path(d).parents[1].name.split('_')[1])
           )
 
@@ -2000,9 +1999,6 @@ axt.tick_params(axis='y', colors='r')
 
 plt.tight_layout()
 plt.savefig('fig_theta_Ai.pdf', transparent=True)
-
-# %%
-np.sqrt(dir_values/1e6)*0.88919378-1.31253718
 
 # %%
 

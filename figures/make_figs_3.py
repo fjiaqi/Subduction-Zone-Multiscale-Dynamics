@@ -25,7 +25,6 @@ params = {
     'svg.fonttype': 'none'
 }
 mpl.rcParams.update(params)
-%matplotlib inline
 
 # %%
 reference_length = 1.0e6
@@ -296,7 +295,7 @@ res_M = np.zeros((len(Z_list), len(Y_list)))
 
 for i in range(len(Z_list)):
     for j in range(len(Y_list)):
-        output_dir = f'/home1/08524/jqfang/scratch/newnew_2607/L_{Y_list[j]}/Z_{Z_list[i]}/restart/data/'
+        output_dir = f'/home/x-jqfang/scratch/model_2610/L_{Y_list[j]}/Z_{Z_list[i]}/restart/data/'
 
         # sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 10, 'i')
         # sz_st_mean_ref = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
@@ -553,7 +552,7 @@ res_M = np.zeros((len(param_list), len(Y_list)))
 
 for i in range(len(param_list)):
     for j in range(len(Y_list)):
-        output_dir = f'/home1/08524/jqfang/scratch/newnew_2607/L_{Y_list[j]}/{param_name}_{param_list[i]}/restart/data/'
+        output_dir = f'/home/x-jqfang/scratch/model_2610/L_{Y_list[j]}/{param_name}_{param_list[i]}/restart/data/'
 
         # sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 10, 'i')
         # sz_st_mean_ref = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
@@ -726,15 +725,11 @@ plt.savefig('fig_Mw_theta_Wmax_L.pdf', transparent=True)
 
 # %%
 
-
-# %%
-f'/home1/08524/jqfang/scratch/newnew_2607/3d/3d_{L1_list[i][j]}_{L2_list[j]}/restart_*/data/'
-
 # %%
 sz_zbins = -np.arange(0, 81, 5)[::-1]
 sz_ybins = [-0.01, 0.01]
 
-output_dir = '/home1/08524/jqfang/scratch/newnew_2607/fdynmid_3.00e-01/restart/data/'
+output_dir = '/home/x-jqfang/scratch/model_2610/fdynmid_3.00e-01/restart/data/'
 
 sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c')
 res_dv_inf = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
@@ -744,7 +739,7 @@ res_L = np.array([2*np.sqrt(float(Y_list[j])*5e3) for j in range(len(Y_list))])/
 res_dv = np.zeros((len(Y_list), len(sz_zbins)-1))
 
 for j in range(len(Y_list)):
-    output_dir = f'/home1/08524/jqfang/scratch/newnew_2607/L_{Y_list[j]}/Z_6.00e+04/restart/data/'
+    output_dir = f'/home/x-jqfang/scratch/model_2610/L_{Y_list[j]}/Z_6.00e+04/restart/data/'
 
     # sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 10, 'i')
     # sz_st_mean_ref = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
@@ -764,8 +759,8 @@ res_dv_3d = np.zeros((len(L1_list), len(L2_list), len(sz_zbins)-1))
 
 for i in tqdm(range(len(L1_list))):
     for j in range(len(L2_list)):
-        output_dir = glob(f'/home1/08524/jqfang/scratch/newnew_2607/3d/3d_{L1_list[i][j]}_{L2_list[j]}/restart_*/data/')[0]
-        basic_dir = f'/home1/08524/jqfang/scratch/newnew_2607/3d/3d_1.1_1.1/data/'
+        output_dir = glob(f'/home/x-jqfang/scratch/model_2610/3d/3d_{L1_list[i][j]}_{L2_list[j]}/restart_*/data/')[0]
+        basic_dir = f'/home/x-jqfang/scratch/model_2610/3d/3d_1.1_1.1/data/'
         
         sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c', basic_dir=basic_dir)
         sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
@@ -831,7 +826,7 @@ np.max(res_dv_3d[0], axis=-1)/1e3, res_dv_inf.max()/1e3
 np.max(res_dv_3d[0], axis=-1)/1e3, res_dv_inf.max()/1e3
 
 # %%
-output_dir = '/home1/08524/jqfang/scratch/newnew_2607/fdynmid_3.00e-01/data/'
+output_dir = '/home/x-jqfang/scratch/model_2610/fdynmid_3.00e-01/data/'
 
 sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 10, 'l')
 res_dv_inf = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
