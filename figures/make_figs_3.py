@@ -316,14 +316,14 @@ for i in range(len(Z_list)):
         # st_drop_zz = np.interp(zz, sz_zbins[:-1], sz_st_mean_ref-sz_st_mean)
         arg_s = np.where((zz >= sz_zbins.min())
                         #   & (st_drop_zz > 0.1)
-                         & (dv_zz > np.minimum(1e3, 0.1*dv_zz.max())) 
+                         & (dv_zz > np.minimum(2e3, 0.1*dv_zz.max())) 
                          & (zz <= -7)
                          & (zz >= -np.minimum(float(Z_list[i])/1e3, 40)-6))[0]
         ds = np.sqrt(np.diff(xx)**2+np.diff(zz)**2)
         ss = np.insert(np.cumsum(ds), 0, 0)
         res_W[i, j] = np.ptp(ss[arg_s])
         res_D[i, j] = 1/2 * np.sum(ds[arg_s] * (dv_zz[arg_s]+dv_zz[arg_s+1])/2) / np.sum(ds[arg_s])
-        res_M[i, j] = 1/2 * 30e9 * np.sum(ds[arg_s]*1e3 * (dv_zz[arg_s]+dv_zz[arg_s+1])/2/1e3) * res_L[j]*1e3
+        res_M[i, j] = np.pi/4 * 30e9 * np.sum(ds[arg_s]*1e3 * (dv_zz[arg_s]+dv_zz[arg_s+1])/2/1e3) * res_L[j]*1e3
 
 # %%
 fig, ax = plt.subplots(figsize=(12, 4))
@@ -566,13 +566,13 @@ for i in range(len(param_list)):
         # st_drop_zz = np.interp(zz, sz_zbins[:-1], sz_st_mean_ref-sz_st_mean)
         arg_s = np.where((zz >= sz_zbins.min())
                         #   & (st_drop_zz > 0.1)
-                         & (dv_zz > np.minimum(1e3, 0.1*dv_zz.max())) 
-                         & (zz <= -5)
-                         & (zz >= -50))[0]
+                         & (dv_zz > np.minimum(2e3, 0.1*dv_zz.max())) 
+                         & (zz <= -7)
+                         & (zz >= -66))[0]
         ds = np.sqrt(np.diff(xx*float(param_list[i]))**2+np.diff(zz)**2)
         ss = np.insert(np.cumsum(ds), 0, 0)
         res_W[i, j] = np.ptp(ss[arg_s])
-        res_M[i, j] = 1/2 * 30e9 * np.sum(ds[arg_s]*1e3 * (dv_zz[arg_s]+dv_zz[arg_s+1])/2/1e3) * res_L[j]*1e3
+        res_M[i, j] = np.pi/4 * 30e9 * np.sum(ds[arg_s]*1e3 * (dv_zz[arg_s]+dv_zz[arg_s+1])/2/1e3) * res_L[j]*1e3
 
 # %%
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -811,29 +811,13 @@ ax.axhline(0, lw=1, color='k', ls='--')
 # ax.legend()
 ax.set_xlim(0, 3)
 ax.set_ylim(-0.1, 1.1)
-ax.set_xticks([0, 2], ['0', r'${L}$'])
+ax.set_xticks([0, 2], ['0', r'${L}/2$'])
 ax.set_yticks([0, 1], ['0', r'$\Delta \tau$'])
 ax.set_xlabel(r'$y$')
 ax.set_title('(b)', loc='left')
 
 plt.tight_layout()
 plt.savefig('fig_D_cmp.pdf', transparent=True)
-
-# %%
-np.max(res_dv_3d[0], axis=-1)/1e3, res_dv_inf.max()/1e3
-
-# %%
-np.max(res_dv_3d[0], axis=-1)/1e3, res_dv_inf.max()/1e3
-
-# %%
-output_dir = '/home/x-jqfang/scratch/model_2610/fdynmid_3.00e-01/data/'
-
-sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 10, 'l')
-res_dv_inf = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
-plt.plot(sz_zbins[1:], res_dv_inf)
-sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 19, 'l')
-res_dv_inf = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
-# plt.plot(sz_zbins[1:], res_dv_inf)
 
 # %%
 

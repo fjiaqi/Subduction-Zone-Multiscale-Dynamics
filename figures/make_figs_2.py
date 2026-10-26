@@ -280,7 +280,7 @@ plt.savefig('fig_temp.pdf', transparent=True)
 # %%
 fig, ax = plt.subplots(figsize=(6, 3))
 
-ax.plot([0, -80], [0.5, 0.5], label=r'$\mu_{s}$', lw=3, c='b')
+ax.plot([0, -80], [0.7, 0.7], label=r'$\mu_{s}$', lw=3, c='b')
 ax.plot([0, -5, -10, -60, -70, -80], [0.7, 0.7, 0.2, 0.2, 0.7, 0.7], label=r'$\mu_{d}$', ls='--', lw=3, c='r')
 ax.set_xlim(0, -80)
 ax.set_xlabel(r'$z$ (km)')
@@ -604,7 +604,7 @@ color_list = plt.cm.coolwarm(np.linspace(0, 1, len(Z_list))[::-1])
 for i in range(len(Z_list)):
     ax.plot(sz_zbins[1:], res_dv[i, 2]*dt/1e3, lw=3,
             # label=f'{res_W[i, 2]:.0f}', c=color_list[i])
-            label=f'{(66-i*10):.0f}', c=color_list[i],
+            label=f'{(70-i*10):.0f}', c=color_list[i],
             ls='-' if i > 0 else '--', zorder=20-i)
 
 ax.set_xlim(0, -75)
@@ -652,7 +652,7 @@ for i in range(6):
 #     ax.plot(l_km(bottom_coords[:, 0]), l_km(bottom_coords[:, 1]), c='silver', ls='--', lw=2)
     
     # ax.text(-90, -115, r'$W$'+f' = {res_W[i, 2]:.0f} km',
-    ax.text(-90, -115, r'$h =$'+f'{66-i*10} km ('+r'$W \approx$'+f'{res_W[i, 2]:.0f} km)',
+    ax.text(-90, -115, r'$h =$'+f'{70-i*10} km ('+r'$W \approx$'+f'{res_W[i, 2]:.0f} km)',
             ha='left', va='bottom', c='k', fontsize=14,
             bbox=dict(facecolor='w', edgecolor='none', alpha=0.8, boxstyle='round'))
 
@@ -677,7 +677,7 @@ plt.savefig('fig_Z1.pdf', transparent=True)
 
 # %%
 prefixes = ('wdisl', 'ymax', 'Gm', 'Gsz', 'fdynmid', 'fst')
-label_list = (r'$\omega_{disl}$', r'$\tau_{y,b}$', r'$G_b$', r'$G_{sz}$', r'$\mu_{d,mid}$', r'$\mu_{s}$')
+label_list = (r'$\omega_{disl}$', r'$\tau_{y,max}$', r'$G_b$', r'$G_{sz}$', r'$\mu_{d,mid}$', r'$\mu_{s}$')
 
 yres = 0
 dir_names = sorted(
@@ -686,6 +686,309 @@ dir_names = sorted(
 )
 dir_c_names = sorted(
     d for d in glob('/home/x-jqfang/scratch/model_2610/*/restart/data/')
+    if Path(d).parents[1].name.startswith(prefixes)
+)
+mesh_loc, arg_mesh = load_tmesh(dir_names[0], yres)
+surf_x = extract_surf_loc(mesh_loc)
+
+sz_zbins = -np.arange(0, 81, 5)[::-1]
+sz_ybins = [-0.01, 0.01]
+
+# %%
+fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+dt = 1
+
+color_list = ['C0', 'C5', 'C3', 'C9', 'C4', 'C1']
+ls_list = ['-', '-.', '-', '--', '-', ':']
+marker_list = ['s', 'o', '^']
+
+for k in range(len(prefixes)):
+    dir_names_k = sorted(
+        [d for d in dir_names
+        if Path(d).parents[0].name.startswith(prefixes[k])],
+        key=lambda d: float(Path(d).parents[0].name.split('_')[1])
+    )
+    dir_c_names_k = sorted(
+        [d for d in dir_c_names
+        if Path(d).parents[1].name.startswith(prefixes[k])],
+        key=lambda d: float(Path(d).parents[1].name.split('_')[1])
+    )
+    vi = np.zeros(len(dir_names_k))
+    Vc = np.zeros(len(dir_names_k))
+    for i in range(len(dir_names_k)):
+        output_dir = dir_names_k[i]
+        output_dir_c = dir_c_names_k[i]
+        mesh_vel = load_tvel(output_dir, 19, yres, arg_mesh, 'l')
+        surf_vel = extract_surf_vel(mesh_vel)
+        sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir_c, 0, 'c')
+        sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
+        vi[i] = surf_vel.max()
+        Vc[i] = sz_dv.max()
+        axes[0].scatter(vi[i]/10, Vc[i]/1e3, c=color_list[k], marker=marker_list[i], edgecolor='k', zorder=10)
+        axes[1].scatter(vi[i]/10, Vc[i]/vi[i], c=color_list[k], marker=marker_list[i], edgecolor='k', zorder=10)
+    axes[0].plot(vi/10, Vc/1e3, c=color_list[k], ls=ls_list[k], lw=3, label=label_list[k])
+    axes[1].plot(vi/10, Vc/vi, c=color_list[k], ls=ls_list[k], lw=3, label=label_list[k])
+    axes[0].scatter(vi[1]/10, Vc[1]/1e3, c='gray', marker=marker_list[1], edgecolor='k', zorder=10)
+    axes[1].scatter(vi[1]/10, Vc[1]/vi[1], c='gray', marker=marker_list[1], edgecolor='k', zorder=10)
+    # print(prefixes[k], vi, Vc/1e3)
+
+axes[0].set_xlabel(r'$v_{pl}$ (cm/yr)')
+axes[0].set_ylabel(r'$U_{max}$ (m)')
+axes[0].minorticks_on()
+axes[0].set_title('(a)', loc='left')
+
+axes[1].set_xlabel(r'$v_{pl}$ (cm/yr)')
+axes[1].set_ylabel(r'$T_r$ (year)')
+axes[1].minorticks_on()
+axes[1].legend()
+axes[1].set_title('(b)', loc='left')
+
+plt.tight_layout()
+plt.savefig('fig_rheo_v_V.pdf', transparent=True)
+
+# %%
+k = 0
+dir_names_k = sorted(
+    [d for d in dir_names
+    if Path(d).parents[0].name.startswith(prefixes[k])],
+    key=lambda d: float(Path(d).parents[0].name.split('_')[1])
+)
+dir_c_names_k = sorted(
+    [d for d in dir_c_names
+    if Path(d).parents[1].name.startswith(prefixes[k])],
+    key=lambda d: float(Path(d).parents[1].name.split('_')[1])
+)
+
+c_list = ['C3', 'C1', 'C0']
+ls_list = ['--', '-', ':']
+
+fig = plt.figure(figsize=(13, 6))
+
+gs = mpl.gridspec.GridSpec(2, 2, width_ratios=[4, 9], height_ratios=[1, 1])
+
+ax = fig.add_subplot(gs[:, 0])
+
+fmt = mticker.LogFormatterSciNotation(base=10)
+
+for i in range(len(dir_names_k)):
+    output_dir = dir_names_k[i]
+    mesh_visc = load_tvisc(output_dir, 19, yres, arg_mesh, 'l')
+    arg_x = np.where((surf_x > -500) & (surf_x < -100))[0]
+    case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(np.mean(10**mesh_visc[:, 0, arg_x, 0], axis=-1), mesh_loc[:, 0, 0, -1], lw=3, 
+#             label=f'{fmt(case_value):s}', 
+            label=f'{case_value:.1f}', 
+            c=c_list[i], ls=ls_list[i])
+
+ax.set_xscale('log')
+ax.set_xlabel(r'$\eta$ (Pa$\cdot$s)')
+ax.set_ylabel(r'$z$ (km)')
+ax.legend(loc='center right', fontsize=12, title=r'$\omega_{disl}$', title_fontsize=12)
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.set_title('(a)', loc='left')
+
+ax.set_ylim(mesh_loc[:, 0, 0, -1].min(), mesh_loc[:, 0, 0, -1].max())
+
+ax = fig.add_subplot(gs[0, 1])
+
+for i in range(len(dir_names_k)):
+    output_dir = dir_names_k[i]
+    mesh_vel = load_tvel(output_dir, 19, yres, arg_mesh, 'l')
+    surf_vx = extract_surf_vel(mesh_vel)
+    case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(surf_x, surf_vx/10, lw=3, label=f'{fmt(case_value):s}', c=c_list[i], ls=ls_list[i])
+
+ax.set_xlim(surf_x.min(), surf_x.max())
+ax.set_xlabel(r'$x$ (km)')
+ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
+# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.set_title('(b)', loc='left')
+
+ax = fig.add_subplot(gs[1, 1])
+
+for i in range(len(dir_c_names_k)):
+    output_dir_c = dir_c_names_k[i]
+    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir_c, 0, 'c')
+    sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
+    case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(sz_zbins[1:], sz_dv/1e3, lw=3, label=f'{fmt(case_value):s}', c=c_list[i], ls=ls_list[i])
+
+ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
+ax.set_xlabel(r'$z$ (km)')
+ax.set_ylabel(r'$U$ (m)')
+# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.set_title('(c)', loc='left')
+
+ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
+
+fig.tight_layout()
+plt.savefig('fig_wdisl.pdf', transparent=True)
+
+# %%
+fig = plt.figure(figsize=(18, 9))
+
+k = 5
+dir_names_k = sorted(
+    [d for d in dir_names
+    if Path(d).parents[0].name.startswith(prefixes[k])],
+    key=lambda d: float(Path(d).parents[0].name.split('_')[1])
+)
+dir_c_names_k = sorted(
+    [d for d in dir_c_names
+    if Path(d).parents[1].name.startswith(prefixes[k])],
+    key=lambda d: float(Path(d).parents[1].name.split('_')[1])
+)
+
+c_list = ['C3', 'C1', 'C0']
+ls_list = ['--', '-', ':']
+
+ax = fig.add_subplot(321)
+
+for i in range(len(dir_names_k)):
+    output_dir = dir_names_k[i]
+    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'i')
+    sz_meanst = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
+    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(sz_zbins[1:], sz_meanst, lw=3, label=f'{case_value:.1f}', c=c_list[i], ls=ls_list[i])
+
+ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
+ax.set_xlabel(r'$z$ (km)')
+ax.set_ylabel(r'Long-term $\tau_{II}$ (MPa)')
+# ax.legend(loc='upper right', fontsize=12, title=label_list[k])
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.legend(loc='upper right', fontsize=12, title=r'$\mu_{s}$', title_fontsize=12)
+ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
+ax.set_title('(a)', loc='left')
+ax.set_title(r'Varying $\mu_s$')
+
+ax = fig.add_subplot(323)
+
+for i in range(len(dir_names_k)):
+    output_dir = dir_names_k[i]
+    mesh_vel = load_tvel(output_dir, 19, yres, arg_mesh, 'l')
+    surf_vx = extract_surf_vel(mesh_vel)
+    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(surf_x, surf_vx/10, lw=3, label=f'{case_value:.1f}', c=c_list[i], ls=ls_list[i])
+
+ax.set_xlim(surf_x.min(), surf_x.max())
+ax.set_xlabel(r'$x$ (km)')
+ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
+# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.set_title('(c)', loc='left')
+
+ax = fig.add_subplot(325)
+
+for i in range(len(dir_c_names_k)):
+    output_dir_c = dir_c_names_k[i]
+    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir_c, 0, 'c')
+    sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
+    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(sz_zbins[1:], sz_dv/1e3, lw=3, label=f'{case_value:.1f}', c=c_list[i], ls=ls_list[i])
+
+ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
+ax.set_xlabel(r'$z$ (km)')
+ax.set_ylabel(r'$U$ (m)')
+# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.set_title('(e)', loc='left')
+
+ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
+
+k = 4
+dir_names_k = sorted(
+    [d for d in dir_names
+    if Path(d).parents[0].name.startswith(prefixes[k])],
+    key=lambda d: float(Path(d).parents[0].name.split('_')[1])
+)[::-1]
+dir_c_names_k = sorted(
+    [d for d in dir_c_names
+    if Path(d).parents[1].name.startswith(prefixes[k])],
+    key=lambda d: float(Path(d).parents[1].name.split('_')[1])
+)[::-1]
+
+c_list = ['C3', 'C1', 'C0']
+ls_list = ['--', '-', ':']
+
+ax = fig.add_subplot(322)
+
+for i in range(len(dir_c_names_k)):
+    output_dir_c = dir_c_names_k[i]
+    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir_c, 0, 'c')
+    sz_meanst = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
+    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(sz_zbins[1:], sz_meanst, lw=3, label=f'{case_value:.1f}', c=c_list[i], ls=ls_list[i])
+
+ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
+ax.set_xlabel(r'$z$ (km)')
+ax.set_ylabel(r'Coseismic $\tau_{II}$ (MPa)')
+# ax.legend(loc='upper right', fontsize=12, title=label_list[k])
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.legend(loc='upper right', fontsize=12, title=r'$\mu_{d,mid}$', title_fontsize=12)
+ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
+ax.set_title('(b)', loc='left')
+ax.set_title(r'Varying $\mu_{d,mid}$')
+
+ax = fig.add_subplot(324)
+
+for i in range(len(dir_names_k)):
+    output_dir = dir_names_k[i]
+    mesh_vel = load_tvel(output_dir, 19, yres, arg_mesh, 'l')
+    surf_vx = extract_surf_vel(mesh_vel)
+    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(surf_x, surf_vx/10, lw=3, label=f'{case_value:.1f}', c=c_list[i], ls=ls_list[i])
+
+ax.set_xlim(surf_x.min(), surf_x.max())
+ax.set_xlabel(r'$x$ (km)')
+ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
+# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.set_title('(d)', loc='left')
+
+ax = fig.add_subplot(326)
+
+for i in range(len(dir_c_names_k)):
+    output_dir_c = dir_c_names_k[i]
+    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir_c, 0, 'c')
+    sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
+    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(sz_zbins[1:], sz_dv/1e3, lw=3, label=f'{case_value:.1f}', c=c_list[i], ls=ls_list[i])
+
+ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
+ax.set_xlabel(r'$z$ (km)')
+ax.set_ylabel(r'$U$ (m)')
+# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.set_title('(f)', loc='left')
+
+ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
+
+fig.tight_layout()
+plt.savefig('fig_f.pdf', transparent=True)
+
+# %%
+prefixes = ('wdisl', 'ymax', 'Gm', 'Gsz', 'fdynmid', 'fst')
+label_list = (r'$\omega_{disl}$', r'$\tau_{y,max}$', r'$G_b$', r'$G_{sz}$', r'$\mu_{d,mid}$', r'$\mu_{s}$')
+
+yres = 2
+dir_names = sorted(
+    d for d in glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/*/data/')
+    if Path(d).parents[0].name.startswith(prefixes)
+)
+dir_c_names = sorted(
+    d for d in glob('/home/x-jqfang/scratch/model_2610/L_5.12e+06/*/restart/data/')
     if Path(d).parents[1].name.startswith(prefixes)
 )
 mesh_loc, arg_mesh = load_tmesh(dir_names[0], yres)
@@ -907,237 +1210,6 @@ fig.tight_layout()
 plt.savefig('fig_fst.pdf', transparent=True)
 
 # %%
-prefixes = ('wdisl', 'ymax', 'Gm', 'Gsz', 'fdynmid', 'fst')
-label_list = (r'$\omega_{disl}$', r'$\tau_{y,b}$', r'$G_b$', r'$G_{sz}$', r'$\mu_{d,mid}$', r'$\mu_{s}$')
-
-yres = 2
-dir_names = sorted(
-    d for d in glob('/home/x-jqfang/scratch/model_2610/L_8.19e+07/*/data/')
-    if Path(d).parents[0].name.startswith(prefixes)
-)
-dir_c_names = sorted(
-    d for d in glob('/home/x-jqfang/scratch/model_2610/L_5.12e+06/*/restart/data/')
-    if Path(d).parents[1].name.startswith(prefixes)
-)
-mesh_loc, arg_mesh = load_tmesh(dir_names[0], yres)
-surf_x = extract_surf_loc(mesh_loc)
-
-sz_zbins = -np.arange(0, 81, 5)[::-1]
-sz_ybins = [-0.01, 0.01]
-
-# %%
-fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-
-dt = 1
-
-color_list = ['C0', 'C5', 'C3', 'C9', 'C4', 'C1']
-ls_list = ['-', '-.', '-', '--', '-', ':']
-marker_list = ['s', 'o', '^']
-
-for k in range(len(prefixes)):
-    dir_names_k = sorted(
-        [d for d in dir_names
-        if Path(d).parents[0].name.startswith(prefixes[k])],
-        key=lambda d: float(Path(d).parents[0].name.split('_')[1])
-    )
-    dir_c_names_k = sorted(
-        [d for d in dir_c_names
-        if Path(d).parents[1].name.startswith(prefixes[k])],
-        key=lambda d: float(Path(d).parents[1].name.split('_')[1])
-    )
-    vi = np.zeros(len(dir_names_k))
-    Vc = np.zeros(len(dir_names_k))
-    for i in range(len(dir_names_k)):
-        output_dir = dir_names_k[i]
-        output_dir_c = dir_c_names_k[i]
-        mesh_vel = load_tvel(output_dir, 19, yres, arg_mesh, 'l')
-        surf_vel = extract_surf_vel(mesh_vel)
-        sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir_c, 0, 'c')
-        sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
-        vi[i] = surf_vel.max()
-        Vc[i] = sz_dv.max()
-        axes[0].scatter(vi[i]/10, Vc[i]/1e3, c=color_list[k], marker=marker_list[i], edgecolor='k', zorder=10)
-        axes[1].scatter(vi[i]/10, Vc[i]/vi[i], c=color_list[k], marker=marker_list[i], edgecolor='k', zorder=10)
-    axes[0].plot(vi/10, Vc/1e3, c=color_list[k], ls=ls_list[k], lw=3, label=label_list[k])
-    axes[1].plot(vi/10, Vc/vi, c=color_list[k], ls=ls_list[k], lw=3, label=label_list[k])
-    axes[0].scatter(vi[1]/10, Vc[1]/1e3, c='gray', marker=marker_list[1], edgecolor='k', zorder=10)
-    axes[1].scatter(vi[1]/10, Vc[1]/vi[1], c='gray', marker=marker_list[1], edgecolor='k', zorder=10)
-    # print(prefixes[k], vi, Vc/1e3)
-
-axes[0].set_xlabel(r'$v_{pl}$ (cm/yr)')
-axes[0].set_ylabel(r'$U_{max}$ (m)')
-axes[0].minorticks_on()
-axes[0].set_title('(a)', loc='left')
-
-axes[1].set_xlabel(r'$v_{pl}$ (cm/yr)')
-axes[1].set_ylabel(r'$T_r$ (year)')
-axes[1].minorticks_on()
-axes[1].legend()
-axes[1].set_title('(b)', loc='left')
-
-plt.tight_layout()
-plt.savefig('fig_rheo_v_V.pdf', transparent=True)
-
-# %%
-k = 0
-dir_names_k = sorted(
-    [d for d in dir_names
-    if Path(d).parents[0].name.startswith(prefixes[k])],
-    key=lambda d: float(Path(d).parents[0].name.split('_')[1])
-)
-dir_c_names_k = sorted(
-    [d for d in dir_c_names
-    if Path(d).parents[1].name.startswith(prefixes[k])],
-    key=lambda d: float(Path(d).parents[1].name.split('_')[1])
-)
-
-c_list = ['C3', 'C1', 'C0']
-ls_list = ['--', '-', ':']
-
-fig = plt.figure(figsize=(13, 6))
-
-gs = mpl.gridspec.GridSpec(2, 2, width_ratios=[4, 9], height_ratios=[1, 1])
-
-ax = fig.add_subplot(gs[:, 0])
-
-fmt = mticker.LogFormatterSciNotation(base=10)
-
-for i in range(len(dir_names_k)):
-    output_dir = dir_names_k[i]
-    mesh_visc = load_tvisc(output_dir, 19, yres, arg_mesh, 'l')
-    arg_x = np.where((surf_x > -500) & (surf_x < -100))[0]
-    case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
-    ax.plot(np.mean(10**mesh_visc[:, 0, arg_x, 0], axis=-1), mesh_loc[:, 0, 0, -1], lw=3, 
-#             label=f'{fmt(case_value):s}', 
-            label=f'{case_value:.1f}', 
-            c=c_list[i], ls=ls_list[i])
-
-ax.set_xscale('log')
-ax.set_xlabel(r'$\eta$ (Pa$\cdot$s)')
-ax.set_ylabel(r'$z$ (km)')
-ax.legend(loc='center right', fontsize=12, title=r'$\omega_{disl}$', title_fontsize=12)
-ax.tick_params(axis='y', labelcolor='k')
-ax.minorticks_on()
-ax.set_title('(a)', loc='left')
-
-ax.set_ylim(mesh_loc[:, 0, 0, -1].min(), mesh_loc[:, 0, 0, -1].max())
-
-ax = fig.add_subplot(gs[0, 1])
-
-for i in range(len(dir_names_k)):
-    output_dir = dir_names_k[i]
-    mesh_vel = load_tvel(output_dir, 19, yres, arg_mesh, 'l')
-    surf_vx = extract_surf_vel(mesh_vel)
-    case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
-    ax.plot(surf_x, surf_vx/10, lw=3, label=f'{fmt(case_value):s}', c=c_list[i], ls=ls_list[i])
-
-ax.set_xlim(surf_x.min(), surf_x.max())
-ax.set_xlabel(r'$x$ (km)')
-ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
-ax.tick_params(axis='y', labelcolor='k')
-ax.minorticks_on()
-ax.set_title('(b)', loc='left')
-
-ax = fig.add_subplot(gs[1, 1])
-
-for i in range(len(dir_c_names_k)):
-    output_dir_c = dir_c_names_k[i]
-    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir_c, 0, 'c')
-    sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
-    case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
-    ax.plot(sz_zbins[1:], sz_dv/1e3, lw=3, label=f'{fmt(case_value):s}', c=c_list[i], ls=ls_list[i])
-
-ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
-ax.set_xlabel(r'$z$ (km)')
-ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
-ax.tick_params(axis='y', labelcolor='k')
-ax.minorticks_on()
-ax.set_title('(c)', loc='left')
-
-ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
-
-fig.tight_layout()
-plt.savefig('fig_wdisl.pdf', transparent=True)
-
-# %%
-k = 5
-dir_names_k = sorted(
-    [d for d in dir_names
-    if Path(d).parents[0].name.startswith(prefixes[k])],
-    key=lambda d: float(Path(d).parents[0].name.split('_')[1])
-)
-dir_c_names_k = sorted(
-    [d for d in dir_c_names
-    if Path(d).parents[1].name.startswith(prefixes[k])],
-    key=lambda d: float(Path(d).parents[1].name.split('_')[1])
-)
-
-c_list = ['C3', 'C1', 'C0']
-ls_list = ['--', '-', ':']
-
-fig = plt.figure(figsize=(9, 9))
-
-ax = fig.add_subplot(311)
-
-for i in range(len(dir_names_k)):
-    output_dir = dir_names_k[i]
-    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'i')
-    sz_meanst = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
-    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
-    ax.plot(sz_zbins[1:], sz_meanst, lw=3, label=f'{2*case_value-0.2:.1f}', c=c_list[i], ls=ls_list[i])
-
-ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
-ax.set_xlabel(r'$z$ (km)')
-ax.set_ylabel(r'$\tau_{II}$ (MPa)')
-# ax.legend(loc='upper right', fontsize=12, title=label_list[k])
-ax.tick_params(axis='y', labelcolor='k')
-ax.minorticks_on()
-ax.legend(loc='upper right', fontsize=12, title=r'$\mu_{s}$', title_fontsize=12)
-ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
-ax.set_title('(a)', loc='left')
-
-ax = fig.add_subplot(312)
-
-for i in range(len(dir_names_k)):
-    output_dir = dir_names_k[i]
-    mesh_vel = load_tvel(output_dir, 19, yres, arg_mesh, 'l')
-    surf_vx = extract_surf_vel(mesh_vel)
-    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
-    ax.plot(surf_x, surf_vx/10, lw=3, label=f'{2*case_value-0.2:.1f}', c=c_list[i], ls=ls_list[i])
-
-ax.set_xlim(surf_x.min(), surf_x.max())
-ax.set_xlabel(r'$x$ (km)')
-ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
-ax.tick_params(axis='y', labelcolor='k')
-ax.minorticks_on()
-ax.set_title('(b)', loc='left')
-
-ax = fig.add_subplot(313)
-
-for i in range(len(dir_c_names_k)):
-    output_dir_c = dir_c_names_k[i]
-    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir_c, 0, 'c')
-    sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
-    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
-    ax.plot(sz_zbins[1:], sz_dv/1e3, lw=3, label=f'{case_value:.1f}', c=c_list[i], ls=ls_list[i])
-
-ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
-ax.set_xlabel(r'$z$ (km)')
-ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
-ax.tick_params(axis='y', labelcolor='k')
-ax.minorticks_on()
-ax.set_title('(c)', loc='left')
-
-ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
-
-fig.tight_layout()
-plt.savefig('fig_fst.pdf', transparent=True)
-
-# %%
 k = 2
 dir_names_k = sorted(
     [d for d in dir_names
@@ -1260,10 +1332,31 @@ dir_c_names_k = sorted(
     key=lambda d: float(Path(d).parents[1].name.split('_')[1])
 )
 
+c_list = ['C3', 'C1', 'C0']
+ls_list = ['--', '-', ':']
 
-fig = plt.figure(figsize=(9, 6))
+fig = plt.figure(figsize=(9, 9))
 
-ax = fig.add_subplot(211)
+ax = fig.add_subplot(311)
+
+for i in range(len(dir_c_names_k)):
+    output_dir_c = dir_c_names_k[i]
+    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir_c, 0, 'c')
+    sz_meanst = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
+    case_value = case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
+    ax.plot(sz_zbins[1:], sz_meanst, lw=3, label=f'{case_value:.1f}', c=c_list[i], ls=ls_list[i])
+
+ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
+ax.set_xlabel(r'$z$ (km)')
+ax.set_ylabel(r'$\tau_{II}$ (MPa)')
+# ax.legend(loc='upper right', fontsize=12, title=label_list[k])
+ax.tick_params(axis='y', labelcolor='k')
+ax.minorticks_on()
+ax.legend(loc='upper right', fontsize=12, title=r'$\mu_{d,mid}$', title_fontsize=12)
+ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
+ax.set_title('(a)', loc='left')
+
+ax = fig.add_subplot(312)
 
 for i in range(len(dir_names_k)):
     output_dir = dir_names_k[i]
@@ -1275,12 +1368,12 @@ for i in range(len(dir_names_k)):
 ax.set_xlim(surf_x.min(), surf_x.max())
 ax.set_xlabel(r'$x$ (km)')
 ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
-
+# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
-ax.set_title('(a)', loc='left')
+ax.set_title('(b)', loc='left')
 
-ax = fig.add_subplot(212)
+ax = fig.add_subplot(313)
 
 for i in range(len(dir_c_names_k)):
     output_dir_c = dir_c_names_k[i]
@@ -1295,8 +1388,7 @@ ax.set_ylabel(r'$U$ (m)')
 # ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
-ax.legend(loc='upper right', fontsize=12, title=r'$\mu_{d,mid}$', title_fontsize=12)
-ax.set_title('(b)', loc='left')
+ax.set_title('(c)', loc='left')
 
 ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
 
@@ -1351,7 +1443,7 @@ ax.set_ylabel(r'$U$ (m)')
 # ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
-ax.legend(loc='upper right', fontsize=12, title=r'$\tau_{y,b}$ (MPa)', title_fontsize=12)
+ax.legend(loc='upper right', fontsize=12, title=r'$\tau_{y,max}$ (MPa)', title_fontsize=12)
 ax.set_title('(b)', loc='left')
 
 ax.set_xlim(sz_zbins[1:].max(), sz_zbins[1:].min())
@@ -1449,7 +1541,6 @@ for i in range(len(dir_all)):
     surf_vx_l_all[i] = surf_vx.max()
     sz_dv_c_all[i] = sz_dv.max()
 
-ax.set_title('(a)', loc='left')
 ax.plot(dir_values/1e6, surf_vx_l_all/10, c='b', lw=3, marker='o')
 p = np.polyfit(np.sqrt(dir_values[:3]/1e6), surf_vx_l_all[:3]/10, 1)
 ax.plot(dir_values/1e6, np.sqrt(dir_values/1e6)*p[0]+p[1], 'b--')
@@ -1539,7 +1630,6 @@ for i in range(len(dir_all)):
     surf_vx_l_all[i] = surf_vx.max()
     sz_dv_c_all[i] = sz_dv.max()
 
-ax.set_title('(a)', loc='left')
 ax.plot(dir_values/1e6, surf_vx_l_all/10, c='b', lw=3, marker='o')
 p = np.polyfit(np.sqrt(dir_values[:3]/1e6), surf_vx_l_all[:3]/10, 1)
 ax.plot(dir_values/1e6, np.sqrt(dir_values/1e6)*p[0]+p[1], 'b--')
@@ -1623,14 +1713,13 @@ for i in range(len(dir_all)):
     surf_vx_l_all[i] = surf_vx.max()
     sz_dv_c_all[i] = sz_dv.max()
 
-ax.set_title('(c)', loc='left')
 ax.plot(dir_values/1e6, surf_vx_l_all/10, c='b', lw=3, marker='o')
 # p = np.polyfit(np.sqrt(dir_values[:3]/1e6), surf_vx_l_all[:3]/10, 1)
 # ax.plot(dir_values/1e6, np.sqrt(dir_values/1e6)*p[0]+p[1], 'b--')
 axt = ax.twinx()
 axt.plot(dir_values/1e6, sz_dv_c_all/surf_vx_l_all, c='r', lw=3, marker='s')
 
-ax.set_title('(a)', loc='left')
+ax.set_title('(c)', loc='left')
 ax.set_xlabel(r'$A_i$ (Myr)')
 ax.set_ylabel(r'$v_{pl}$ (cm/yr)', c='b')
 axt.set_ylabel(r'$T_r$ (yr)', c='r')
@@ -1722,7 +1811,6 @@ for i in range(len(dir_all)):
     surf_vx_l_all[i] = surf_vx.max()
     sz_dv_c_all[i] = sz_dv.max()
 
-ax.set_title('(a)', loc='left')
 ax.plot(dir_values/1e6, surf_vx_l_all/10, c='b', lw=3, marker='o')
 p = np.polyfit(np.sqrt(dir_values[:3]/1e6), surf_vx_l_all[:3]/10, 1)
 ax.plot(dir_values/1e6, np.sqrt(dir_values/1e6)*p[0]+p[1], 'b--')
@@ -1812,7 +1900,6 @@ for i in range(len(dir_all)):
     surf_vx_l_all[i] = surf_vx.max()
     sz_dv_c_all[i] = sz_dv.max()
 
-ax.set_title('(a)', loc='left')
 ax.plot(dir_values/1e6, surf_vx_l_all/10, c='b', lw=3, marker='o')
 p = np.polyfit(np.sqrt(dir_values[:3]/1e6), surf_vx_l_all[:3]/10, 1)
 ax.plot(dir_values/1e6, np.sqrt(dir_values/1e6)*p[0]+p[1], 'b--')
@@ -1918,87 +2005,6 @@ axt.tick_params(axis='y', colors='r')
 
 plt.tight_layout()
 plt.savefig('fig_theta_Ai_Tr.pdf', transparent=True)
-
-# %%
-fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-
-ax = axes[1]
-dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/eq_2602/L_5.12e+06/gfactor_*/data/'),
-              key=lambda d: float(Path(d).parents[0].name.split('_')[1])
-          )
-dir_values = np.zeros(len(dir_all))
-surf_vx_l_all = np.zeros(len(dir_all))
-sz_dv_c_all = np.zeros(len(dir_all))
-
-for i in range(len(dir_all)):
-    output_dir = dir_all[i]
-    mesh_vel = load_tvel(output_dir, 50, yres, arg_mesh, 'l')
-    surf_vx = extract_surf_vel(mesh_vel)
-    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c')
-    sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
-    dir_values[i] = float(Path(output_dir).parents[0].name.split('_')[1])
-    surf_vx_l_all[i] = surf_vx.max()
-    sz_dv_c_all[i] = sz_dv.max()
-
-theta = np.rad2deg(np.arctan2(zz[arg_1]-zz[arg_2], (xx[arg_2]-xx[arg_1])*dir_values))
-ax.plot(theta, surf_vx_l_all/10, c='b', lw=3, marker='o')
-axt = ax.twinx()
-axt.plot(theta, sz_dv_c_all/1e3, c='r', lw=3, marker='s')
-
-ax.set_title('(b)', loc='left')
-ax.set_xlabel(r'$\Theta$ ($^\circ$)')
-ax.set_ylabel(r'$v_{pl}$ (cm/yr)', c='b')
-axt.set_ylabel(r'$U_{max}$ (m)', c='r')
-ax.minorticks_on()
-axt.minorticks_on()
-axt.set_ylim(5, 45)
-
-axt.spines['left'].set_color('b')
-axt.spines['right'].set_color('r')
-ax.tick_params(axis='y', colors='b')
-axt.tick_params(axis='y', colors='r')
-
-ax = axes[0]
-dir_all = sorted(
-              glob('/home1/08524/jqfang/scratch/eq_2602/L_5.12e+06/wpa_*/data/'),
-              key=lambda d: float(Path(d).parents[0].name.split('_')[1])
-          )
-dir_values = np.zeros(len(dir_all))
-surf_vx_l_all = np.zeros(len(dir_all))
-sz_dv_c_all = np.zeros(len(dir_all))
-
-for i in range(len(dir_all)):
-    output_dir = dir_all[i]
-    mesh_vel = load_tvel(output_dir, 50, yres, arg_mesh, 'l')
-    surf_vx = extract_surf_vel(mesh_vel)
-    sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c')
-    sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
-    dir_values[i] = float(Path(output_dir).parents[0].name.split('_')[1])
-    surf_vx_l_all[i] = surf_vx.max()
-    sz_dv_c_all[i] = sz_dv.max()
-
-ax.set_title('(a)', loc='left')
-ax.plot(dir_values/1e6, surf_vx_l_all/10, c='b', lw=3, marker='o')
-p = np.polyfit(np.sqrt(dir_values[:3]/1e6), surf_vx_l_all[:3]/10, 1)
-ax.plot(dir_values/1e6, np.sqrt(dir_values/1e6)*p[0]+p[1], 'b--')
-axt = ax.twinx()
-axt.plot(dir_values/1e6, sz_dv_c_all/1e3, c='r', lw=3, marker='s')
-
-ax.set_xlabel(r'$A_i$ (Myr)')
-ax.set_ylabel(r'$v_{pl}$ (cm/yr)', c='b')
-axt.set_ylabel(r'$U_{max}$ (m)', c='r')
-ax.minorticks_on()
-axt.minorticks_on()
-axt.set_ylim(10, 40)
-
-axt.spines['left'].set_color('b')
-axt.spines['right'].set_color('r')
-ax.tick_params(axis='y', colors='b')
-axt.tick_params(axis='y', colors='r')
-
-plt.tight_layout()
-plt.savefig('fig_theta_Ai.pdf', transparent=True)
 
 # %%
 

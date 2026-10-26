@@ -21,9 +21,8 @@ plt.rcParams['font.size'] = 16
 ###################################################################################################################################################
 
 param_fdynmid = 0.3
-param_fst = 0.5
+param_fst = 0.7
 param_fdynup = 0.7
-param_fstic = param_fst*2-param_fdynmid
 param_etamax = 1e24
 param_ymax = 200e6
 param_wdisl = 1.0
@@ -1150,8 +1149,8 @@ for idx in range(swarm.data.shape[0]):
         else:
             shearZoneFactor.data[idx] = sz_factor * np.exp(-(distance_min-shear_zone_const_width/2.)**2/((shear_zone_char_width-shear_zone_const_width)**2/2.))
 
-friction_st = param_fst
-friction_dyn = np.array([param_fdynup, param_fst, param_fst])
+friction_st = (param_fst+param_fdynmid)/2
+friction_dyn = np.array([param_fdynup, friction_st, friction_st])
 friction_dyn_lithos = 0.6
 if(sz_dependence == 'depth'):
     frictionTransitionUpper = ((depth-friction_trans_depth[0])
@@ -1184,7 +1183,7 @@ else:
 
 frictionDynCenter = frictionDynCenterTmp*shearZoneFactor + friction_st*(1.-shearZoneFactor)
 if(yres > 0):    
-    friction_dyn_edge = np.array([param_fstic, param_fst, param_fst])
+    friction_dyn_edge = np.array([param_fdynup, friction_st, friction_st])
     if(sz_dependence == 'depth'):
         frictionTransitionUpperEdge = ((depth-friction_trans_depth[0])
                                     / (friction_trans_depth[1]-friction_trans_depth[0])
@@ -1536,8 +1535,8 @@ flag = 'i'
 dt_e = dt_short
 
 if(nsteps_ic > 0):
-    friction_st = param_fstic
-    friction_dyn = np.array([param_fdynup, param_fstic, param_fstic])
+    friction_st = param_fst
+    friction_dyn = np.array([param_fdynup, friction_st, friction_st])
     friction_dyn_lithos = 0.6
     if(sz_dependence == 'depth'):
         frictionTransitionUpper = ((depth-friction_trans_depth[0])
@@ -1570,7 +1569,7 @@ if(nsteps_ic > 0):
         
     frictionDynCenter = frictionDynCenterTmp*shearZoneFactor + friction_st*(1.-shearZoneFactor)
     if(yres > 0):    
-        friction_dyn_edge = np.array([param_fstic, param_fstic, param_fstic])
+        friction_dyn_edge = np.array([param_fdynup, friction_st, friction_st])
         if(sz_dependence == 'depth'):
             frictionTransitionUpperEdge = ((depth-friction_trans_depth[0])
                                         / (friction_trans_depth[1]-friction_trans_depth[0])
@@ -1733,8 +1732,8 @@ if(impose_event):
     dt_e = dt_event
     # checkpoint(-1, flag, velocity=True, pressure=True, prestress=True)
 
-    friction_st = param_fstic
-    friction_dyn = np.array([param_fdynup, param_fdynmid, param_fstic])
+    friction_st = param_fst
+    friction_dyn = np.array([param_fdynup, param_fdynmid, friction_st])
     friction_dyn_lithos = 0.6
     if(sz_dependence == 'depth'):
         frictionTransitionUpper = ((depth-friction_trans_depth[0])
@@ -1767,7 +1766,7 @@ if(impose_event):
         
     frictionDynCenter = frictionDynCenterTmp*shearZoneFactor + friction_st*(1.-shearZoneFactor)
     if(yres > 0):    
-        friction_dyn_edge = np.array([param_fstic, param_fstic, param_fstic])
+        friction_dyn_edge = np.array([param_fdynup, friction_st, friction_st])
         if(sz_dependence == 'depth'):
             frictionTransitionUpperEdge = ((depth-friction_trans_depth[0])
                                         / (friction_trans_depth[1]-friction_trans_depth[0])
@@ -1917,8 +1916,8 @@ flag = 'p'
 dt_e = dt_event
 
 if(nsteps_post > 0):
-    friction_st = param_fstic
-    friction_dyn = np.array([param_fdynup, param_fstic, param_fstic])
+    friction_st = param_fst
+    friction_dyn = np.array([param_fdynup, friction_st, friction_st])
     friction_dyn_lithos = 0.6
     if(sz_dependence == 'depth'):
         frictionTransitionUpper = ((depth-friction_trans_depth[0])
@@ -1951,7 +1950,7 @@ if(nsteps_post > 0):
         
     frictionDynCenter = frictionDynCenterTmp*shearZoneFactor + friction_st*(1.-shearZoneFactor)
     if(yres > 0):    
-        friction_dyn_edge = np.array([param_fstic, param_fstic, param_fstic])
+        friction_dyn_edge = np.array([param_fdynup, friction_st, friction_st])
         if(sz_dependence == 'depth'):
             frictionTransitionUpperEdge = ((depth-friction_trans_depth[0])
                                         / (friction_trans_depth[1]-friction_trans_depth[0])
