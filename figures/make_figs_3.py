@@ -296,9 +296,6 @@ res_M = np.zeros((len(Z_list), len(Y_list)))
 for i in range(len(Z_list)):
     for j in range(len(Y_list)):
         output_dir = f'/home/x-jqfang/scratch/model_2610/L_{Y_list[j]}/Z_{Z_list[i]}/restart/data/'
-
-        # sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 10, 'i')
-        # sz_st_mean_ref = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
         
         try:
             sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c')
@@ -309,16 +306,13 @@ for i in range(len(Z_list)):
             res_M[i, j] = np.nan
             continue
         sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
-        # sz_st_mean = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
 
         res_dv[i, j] = sz_dv
-        dv_zz = np.interp(zz, sz_zbins[:-1], sz_dv)
-        # st_drop_zz = np.interp(zz, sz_zbins[:-1], sz_st_mean_ref-sz_st_mean)
+        dv_zz = np.interp(zz, sz_zbins[1:], sz_dv)
         arg_s = np.where((zz >= sz_zbins.min())
-                        #   & (st_drop_zz > 0.1)
                          & (dv_zz > np.minimum(2e3, 0.1*dv_zz.max())) 
-                         & (zz <= -7)
-                         & (zz >= -np.minimum(float(Z_list[i])/1e3, 40)-6))[0]
+                         & (zz <= -5)
+                         & (zz >= -np.minimum(float(Z_list[i])/1e3, 40)-10))[0]
         ds = np.sqrt(np.diff(xx)**2+np.diff(zz)**2)
         ss = np.insert(np.cumsum(ds), 0, 0)
         res_W[i, j] = np.ptp(ss[arg_s])
@@ -358,12 +352,6 @@ for i in range(len(Z_list)):
         c=color_list[i], marker='o', markersize=5, 
         label=f'{res_W[i].max():.0f}', lw=3, zorder=10
     )
-
-# ax.errorbar(
-#     stats["L_med"], stats["D_med"],
-#     xerr=L_err, yerr=D_err, color='gray',
-#     fmt='o', ecolor='gray', alpha=0.7, capsize=3
-# )
 
 ax.minorticks_on()
 ax.set_xlabel(r'$L$ (km)')
@@ -489,9 +477,6 @@ axes[1].errorbar(
 axes[1].minorticks_on()
 axes[1].set_xlabel(r'${L}$ (km)')
 axes[1].set_ylabel('$M_w$')
-# ax.set_xscale('log')
-# ax.legend(title=r'$W$ (km)', loc='best')
-# ax.set_xlim(10, 3000)
 
 plt.tight_layout()
 plt.savefig('fig_U_Mw_L_W.pdf', transparent=True)
@@ -543,7 +528,7 @@ param_name = 'gfactor'
 param_list = ['1.50e+00', '1.25e+00', '1.00e+00', '7.50e-01', '5.00e-01', '4.00e-01', '3.00e-01', '2.50e-01']
 Y_list = ['8.19e+07', '2.05e+07', '5.12e+06', '1.28e+06', '3.20e+05', '8.00e+04']
 arg_1 = np.argmin(np.abs(zz+5))
-arg_2 = np.argmin(np.abs(zz+50))
+arg_2 = np.argmin(np.abs(zz+70))
 res_theta = np.rad2deg(np.arctan2(zz[arg_1]-zz[arg_2], (xx[arg_2]-xx[arg_1])*np.array(param_list).astype(float)))
 res_L = np.array([2*np.sqrt(float(Y_list[j])*5e3) for j in range(len(Y_list))])/1e3
 res_dv = np.zeros((len(param_list), len(Y_list), sz_dv.shape[0]))
@@ -553,22 +538,16 @@ res_M = np.zeros((len(param_list), len(Y_list)))
 for i in range(len(param_list)):
     for j in range(len(Y_list)):
         output_dir = f'/home/x-jqfang/scratch/model_2610/L_{Y_list[j]}/{param_name}_{param_list[i]}/restart/data/'
-
-        # sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 10, 'i')
-        # sz_st_mean_ref = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
         
         sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c')
         sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
-        # sz_st_mean = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
 
         res_dv[i, j] = sz_dv
-        dv_zz = np.interp(zz, sz_zbins[:-1], sz_dv)
-        # st_drop_zz = np.interp(zz, sz_zbins[:-1], sz_st_mean_ref-sz_st_mean)
+        dv_zz = np.interp(zz, sz_zbins[1:], sz_dv)
         arg_s = np.where((zz >= sz_zbins.min())
-                        #   & (st_drop_zz > 0.1)
                          & (dv_zz > np.minimum(2e3, 0.1*dv_zz.max())) 
-                         & (zz <= -7)
-                         & (zz >= -66))[0]
+                         & (zz <= -5)
+                         & (zz >= -70))[0]
         ds = np.sqrt(np.diff(xx*float(param_list[i]))**2+np.diff(zz)**2)
         ss = np.insert(np.cumsum(ds), 0, 0)
         res_W[i, j] = np.ptp(ss[arg_s])
@@ -640,7 +619,6 @@ ax.set_ylim(5, 10)
 ax.minorticks_on()
 ax.set_xlabel(r'$\Theta$ ($^\circ$)')
 ax.set_ylabel(r'$M_{w, max}$')
-# ax.set_xscale('log')
 ax.legend(title=r'$L$ (km)', loc='best')
 
 plt.tight_layout()
@@ -668,7 +646,6 @@ ax.set_ylim(5, 10)
 ax.minorticks_on()
 ax.set_xlabel(r'$W_{max}$ (km)')
 ax.set_ylabel(r'$M_{w, max}$')
-# ax.set_xscale('log')
 ax.legend(title=r'$L$ (km)', loc='best')
 
 plt.tight_layout()
@@ -702,7 +679,6 @@ axes[0].set_ylim(5, 10)
 axes[0].minorticks_on()
 axes[0].set_xlabel(r'$\Theta$ ($^\circ$)')
 axes[0].set_ylabel(r'$M_{w, max}$')
-# axes[0].set_xscale('log')
 axes[0].legend(title=r'$L$ (km)', loc='best')
 axes[0].set_title('(a)', loc='left')
     
@@ -715,9 +691,6 @@ axes[1].set_ylim(5, 10)
 
 axes[1].minorticks_on()
 axes[1].set_xlabel(r'$W_{max}$ (km)')
-# axes[1].set_ylabel(r'$M_{w, max}$')
-# axes[1].set_xscale('log')
-# axes[1].legend(title=r'$L$ (km)', loc='best')
 axes[1].set_title('(b)', loc='left')
 
 plt.tight_layout()
@@ -740,13 +713,9 @@ res_dv = np.zeros((len(Y_list), len(sz_zbins)-1))
 
 for j in range(len(Y_list)):
     output_dir = f'/home/x-jqfang/scratch/model_2610/L_{Y_list[j]}/Z_6.00e+04/restart/data/'
-
-    # sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 10, 'i')
-    # sz_st_mean_ref = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
     
     sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c')
     sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
-    # sz_st_mean = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
 
     res_dv[j] = sz_dv
 

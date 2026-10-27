@@ -13,23 +13,46 @@
 
 Python with underworld2, numpy, scipy, matplotlib, shapely, mpi4py, h5py, pandas, tqdm.
 
-## Running
+## Example workflow
 
-Examples:
+The first two arguments select a parameter index and value. Index `0` sets the coseismic friction coefficient in the friction-weakening region.
+
+### 2D
 
 ```bash
-# 2D parameter study
+# Generate long-term and interseismic states
 mpirun -n 64 python3 param_impose_model_all.py 0 0.3
+
+# Impose an earthquake from interseismic state 9
 mpirun -n 64 python3 param_impose_model_all.py 0 0.3 9
 
-# 2.5D parameter study
+# Alternatively, search for a consistent loading duration
+python3 loading_time_search.py 0 0.3
+```
+
+### 2.5D
+
+```bash
+# Generate the required 2.5D base states
+mpirun -n 64 python3 tr_param_impose_model_all.py 0 0.3
+
+# Impose an earthquake with resistance length lambda = 5120 km
 mpirun -n 64 python3 tr_param_impose_model_all.py 0 0.3 9 5120e3
 
-# 3D model
-mpirun -n 1024 python3 impose_model_all.py 0.0 0.125
-mpirun -n 1024 python3 impose_model_all.py 0.0 0.125 6
-
-# Loading-time searches
-python3 loading_time_search.py 0 0.3
+# Alternatively, search for a consistent loading duration
 python3 tr_loading_time_search.py 0 0.3 9 5120e3
 ```
+
+The total rupture length is `L = 2*sqrt(lambda*D)`, with domain thickness `D = 5 km`; this example gives `L = 320 km`.
+
+### 3D
+
+```bash
+# Generate the base states used by earthquake restarts
+mpirun -n 1024 python3 impose_model_all.py 1.1 1.1
+
+# Impose an earthquake with an along-strike friction transition
+mpirun -n 1024 python3 impose_model_all.py 0.0 0.125 6
+```
+
+The first two 3D arguments specify transition positions as fractions of the 640 km domain length.

@@ -497,27 +497,27 @@ sz_dv_inf = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
 
 for i in range(len(Z_list)):
     for j in range(len(Y_list)):
-        output_dir = f'/home1/08524/jqfang/scratch/new_2607/L_{Y_list[j]}/Z_{Z_list[i]}/data/'
-
-        # sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 10, 'i')
-        # sz_st_mean_ref = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
+        output_dir = f'/home/x-jqfang/scratch/model_2610/L_{Y_list[j]}/Z_{Z_list[i]}/restart/data/'
         
-        sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c')
+        try:
+            sz_loc, sz_vel, sz_sr, sz_st, sz_visc = load_sz_args(output_dir, 0, 'c')
+        except:
+            res_dv[i, j] = np.nan
+            res_W[i, j] = np.nan
+            res_M[i, j] = np.nan
+            continue
         sz_dv = extract_sz_dv(sz_loc, sz_vel, sz_ybins, sz_zbins)
-        # sz_st_mean = extract_sz_var_mean(sz_loc, sz_st, sz_ybins, sz_zbins)
 
         res_dv[i, j] = sz_dv
-        dv_zz = np.interp(zz, sz_zbins[:-1], sz_dv)
-        # st_drop_zz = np.interp(zz, sz_zbins[:-1], sz_st_mean_ref-sz_st_mean)
+        dv_zz = np.interp(zz, sz_zbins[1:], sz_dv)
         arg_s = np.where((zz >= sz_zbins.min())
-                        #   & (st_drop_zz > 0.1)
-                         & (dv_zz > np.minimum(1e3, 0.1*dv_zz.max())) 
-                         & (zz <= -7)
-                         & (zz >= -np.minimum(float(Z_list[i])/1e3, 40)-6))[0]
+                         & (dv_zz > np.minimum(2e3, 0.1*dv_zz.max())) 
+                         & (zz <= -5)
+                         & (zz >= -np.minimum(float(Z_list[i])/1e3, 40)-10))[0]
         ds = np.sqrt(np.diff(xx)**2+np.diff(zz)**2)
         ss = np.insert(np.cumsum(ds), 0, 0)
         res_W[i, j] = np.ptp(ss[arg_s])
-        res_M[i, j] = 1/2 * 30e9 * np.sum(ds[arg_s]*1e3 * (dv_zz[arg_s]+dv_zz[arg_s+1])/2/1e3) * res_L[j]*1e3
+        res_M[i, j] = np.pi/4 * 30e9 * np.sum(ds[arg_s]*1e3 * (dv_zz[arg_s]+dv_zz[arg_s+1])/2/1e3) * res_L[j]*1e3
 
 # %%
 fig, ax = plt.subplots(figsize=(12, 3.75))
@@ -603,7 +603,7 @@ color_list = plt.cm.coolwarm(np.linspace(0, 1, len(Z_list))[::-1])
 
 for i in range(len(Z_list)):
     ax.plot(sz_zbins[1:], res_dv[i, 2]*dt/1e3, lw=3,
-            # label=f'{res_W[i, 2]:.0f}', c=color_list[i])
+            # label=f'{res_W[i].max():.0f}', c=color_list[i])
             label=f'{(70-i*10):.0f}', c=color_list[i],
             ls='-' if i > 0 else '--', zorder=20-i)
 
@@ -648,11 +648,7 @@ for i in range(6):
                             np.linalg.norm(v_mm_yr(vel_3d[arg_frontcore]), axis=1)*dt/1e3, 
                             np.linspace(0, vlim, 101), cmap='RdYlBu_r', extend='max')
 
-#     ax.plot(l_km(top_coords[:, 0]), l_km(top_coords[:, 1]), c='silver', ls='--', lw=2)
-#     ax.plot(l_km(bottom_coords[:, 0]), l_km(bottom_coords[:, 1]), c='silver', ls='--', lw=2)
-    
-    # ax.text(-90, -115, r'$W$'+f' = {res_W[i, 2]:.0f} km',
-    ax.text(-90, -115, r'$h =$'+f'{70-i*10} km ('+r'$W \approx$'+f'{res_W[i, 2]:.0f} km)',
+    ax.text(-90, -115, r'$h =$'+f'{70-i*10} km ('+r'$W \approx$'+f'{res_W[i].max():.0f} km)',
             ha='left', va='bottom', c='k', fontsize=14,
             bbox=dict(facecolor='w', edgecolor='none', alpha=0.8, boxstyle='round'))
 
@@ -777,7 +773,6 @@ for i in range(len(dir_names_k)):
     arg_x = np.where((surf_x > -500) & (surf_x < -100))[0]
     case_value = float(Path(dir_names_k[i]).parents[0].name.split('_')[1])
     ax.plot(np.mean(10**mesh_visc[:, 0, arg_x, 0], axis=-1), mesh_loc[:, 0, 0, -1], lw=3, 
-#             label=f'{fmt(case_value):s}', 
             label=f'{case_value:.1f}', 
             c=c_list[i], ls=ls_list[i])
 
@@ -803,7 +798,6 @@ for i in range(len(dir_names_k)):
 ax.set_xlim(surf_x.min(), surf_x.max())
 ax.set_xlabel(r'$x$ (km)')
 ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(b)', loc='left')
@@ -820,7 +814,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(c)', loc='left')
@@ -860,7 +853,6 @@ for i in range(len(dir_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'Long-term $\tau_{II}$ (MPa)')
-# ax.legend(loc='upper right', fontsize=12, title=label_list[k])
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.legend(loc='upper right', fontsize=12, title=r'$\mu_{s}$', title_fontsize=12)
@@ -880,7 +872,6 @@ for i in range(len(dir_names_k)):
 ax.set_xlim(surf_x.min(), surf_x.max())
 ax.set_xlabel(r'$x$ (km)')
 ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(c)', loc='left')
@@ -897,7 +888,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(e)', loc='left')
@@ -931,7 +921,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'Coseismic $\tau_{II}$ (MPa)')
-# ax.legend(loc='upper right', fontsize=12, title=label_list[k])
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.legend(loc='upper right', fontsize=12, title=r'$\mu_{d,mid}$', title_fontsize=12)
@@ -951,7 +940,6 @@ for i in range(len(dir_names_k)):
 ax.set_xlim(surf_x.min(), surf_x.max())
 ax.set_xlabel(r'$x$ (km)')
 ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(d)', loc='left')
@@ -968,7 +956,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(f)', loc='left')
@@ -1106,7 +1093,6 @@ for i in range(len(dir_names_k)):
 ax.set_xlim(surf_x.min(), surf_x.max())
 ax.set_xlabel(r'$x$ (km)')
 ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(b)', loc='left')
@@ -1123,7 +1109,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(c)', loc='left')
@@ -1182,7 +1167,6 @@ for i in range(len(dir_names_k)):
 ax.set_xlim(surf_x.min(), surf_x.max())
 ax.set_xlabel(r'$x$ (km)')
 ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(b)', loc='left')
@@ -1199,7 +1183,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(c)', loc='left')
@@ -1253,7 +1236,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.legend(loc='upper right', fontsize=12, title=r'$G_{b}$ (GPa)', title_fontsize=12)
@@ -1308,7 +1290,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.legend(loc='upper right', fontsize=12, title=r'$G_{sz}$ (GPa)', title_fontsize=12)
@@ -1368,7 +1349,6 @@ for i in range(len(dir_names_k)):
 ax.set_xlim(surf_x.min(), surf_x.max())
 ax.set_xlabel(r'$x$ (km)')
 ax.set_ylabel(r'$v_x$ (cm/yr)', c='k')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(b)', loc='left')
@@ -1385,7 +1365,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.set_title('(c)', loc='left')
@@ -1440,7 +1419,6 @@ for i in range(len(dir_c_names_k)):
 ax.set_xlim(sz_zbins[:-1].max(), sz_zbins[:-1].min())
 ax.set_xlabel(r'$z$ (km)')
 ax.set_ylabel(r'$U$ (m)')
-# ax.legend(loc='upper right', fontsize=12, title=r'$A_{disl}^{-\frac{1}{n}}$ (Pa$\cdot$s$^{\frac{1}{n}}$)', title_fontsize=12)
 ax.tick_params(axis='y', labelcolor='k')
 ax.minorticks_on()
 ax.legend(loc='upper right', fontsize=12, title=r'$\tau_{y,max}$ (MPa)', title_fontsize=12)
@@ -1460,7 +1438,7 @@ xx = txt[::-1, 0]
 zz = txt[::-1, 1]
 plt.plot(xx, zz)
 arg_1 = np.argmin(np.abs(zz+5))
-arg_2 = np.argmin(np.abs(zz+50))
+arg_2 = np.argmin(np.abs(zz+70))
 plt.scatter([xx[arg_1], xx[arg_2]], [zz[arg_1], zz[arg_2]])
 np.rad2deg(np.arctan2(zz[arg_1]-zz[arg_2], xx[arg_2]-xx[arg_1]))
 
